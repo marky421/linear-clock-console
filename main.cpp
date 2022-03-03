@@ -37,13 +37,13 @@ struct config {
   int secondsEnd = secondsStart + intervalSeconds;
 
   // colors
-  string colorTicksHours     = "\033[0;33mblack\033[0m";
-  string colorTicksHalves    = "\033[0;34mblue\033[0m";
-  string colorTicksQuarters  = "\033[0;31mred\033[0m";
-  string colorFuture         = "\033[0;37mwhite\033[0m";
-  string colorPast           = "\033[0;32mgreen\033[0m";
-  string colorCounterMinutes = "\033[0;34mblue\033[0m";
-  string colorCounterSeconds = "\033[0;32mgreen\033[0m";
+  string colorTicksHours     = "\033[0;33mx\033[0m"; // black
+  string colorTicksHalves    = "\033[0;34mx\033[0m"; // blue
+  string colorTicksQuarters  = "\033[0;31mx\033[0m"; // red
+  string colorFuture         = "\033[0;37mx\033[0m"; // white
+  string colorPast           = "\033[0;32mx\033[0m"; // green
+  string colorCounterMinutes = "\033[0;34mx\033[0m"; // blue
+  string colorCounterSeconds = "\033[0;32mx\033[0m"; // green
 
 
 };
