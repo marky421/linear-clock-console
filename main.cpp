@@ -2,6 +2,7 @@
 #include <chrono>
 #include <ctime>
 #include <string>
+#include <iomanip>
 
 using namespace std;
 
@@ -10,7 +11,8 @@ int getHours(time_t *);
 int getMinutes(time_t *);
 int getSeconds(time_t *);
 
-void renderCurrentTime(struct config *, time_t *, string []);
+bool inClockRange(struct config *, int);
+void renderTime(struct config *, time_t *, string []);
 
 struct config {
   // total LEDs
@@ -80,16 +82,16 @@ int main() {
   for (int i = cfg.clockStart; i < cfg.clockEnd; i++) {
     cout << i << "\t";
     if (i % cfg.intervalHours == 0) {
-      cout << "hours";
+      cout << "hours\t\t" << cfg.colorTicksHours;
       colors[i] = cfg.colorTicksHours;
     } else if (i % cfg.intervalHalves == 0) {
-      cout << "halves";
+      cout << "halves\t\t" << cfg.colorTicksHalves;
       colors[i] = cfg.colorTicksHalves;
     } else if (i % cfg.intervalQuarters == 0) {
-      cout << "quarters";
+      cout << "quarters\t" << cfg.colorTicksQuarters;
       colors[i] = cfg.colorTicksQuarters;
     } else {
-      cout << "minutes";
+      cout << "minutes\t\t" << cfg.colorFuture;
       colors[i] = cfg.colorFuture;
     }
     cout << endl;
@@ -97,21 +99,33 @@ int main() {
 
   for (int i = cfg.minutesStart; i < cfg.minutesEnd; i++) {
     cout << i << "\t";
-    cout << "minutes counter";
+    cout << "minutes counter\t" << cfg.colorFuture;
     cout << endl;
     colors[i] = cfg.colorFuture;
   }
 
   for (int i = cfg.secondsStart; i < cfg.secondsEnd; i++) {
     cout << i << "\t";
-    cout << "seconds counter";
+    cout << "seconds counter\t" << cfg.colorFuture;
     cout << endl;
     colors[i] = cfg.colorFuture;
   }
 
   time_t now = getNow();
-  renderCurrentTime(&cfg, &now, colors);
+  bool alreadyOff = false;
 
+  if (inClockRange(&cfg, getHours(&now))) {
+    renderTime(&cfg, &now, colors);
+    alreadyOff = false;
+  } else {
+    cout << "not in range!" << endl;
+    if (!alreadyOff) {
+      for (int i = cfg.clockStart; i < cfg.total; i++) {
+        // set each LED to off
+      }
+      alreadyOff = true;
+    }
+  }
   return 0;
 }
 
@@ -131,8 +145,12 @@ int getSeconds(time_t *time) {
   return localtime(time)->tm_sec;
 }
 
-void renderCurrentTime(config *cfg, time_t *time, string colors[]) {
-  cout << "renderCurrentTime: " << ctime(time) << endl;
+bool inClockRange(config *cfg, int hours) {
+  return hours >= cfg->hoursStart && hours < (cfg->hoursStart + cfg->totalHours);
+}
+
+void renderTime(config *cfg, time_t *time, string colors[]) {
+  cout << "renderTime: " << ctime(time) << endl;
 
   int hours   = getHours(time);
   int minutes = getMinutes(time);
@@ -141,46 +159,42 @@ void renderCurrentTime(config *cfg, time_t *time, string colors[]) {
   int currentTimeIndex = cfg->clockStart;
   currentTimeIndex += (hours - cfg->hoursStart) * cfg->intervalHours;
   currentTimeIndex += minutes / cfg->intervalMinutes;
-  cout << "cfg->clockStart: " << cfg->clockStart << endl;
-  cout << "hours: " << hours << endl;
-  cout << "cfg->hoursStart: " << cfg->hoursStart << endl;
-  cout << "cfg->intervalHours: " << cfg->intervalHours << endl;
-  cout << "currentTimeIndex: " << currentTimeIndex << endl;
-
 
   int currentMinuteIndex = cfg->minutesStart;
-  currentMinuteIndex += minutes / cfg->intervalMinutes;
+  currentMinuteIndex += minutes % cfg->intervalMinutes;
 
   int currentSecondIndex = cfg->secondsStart;
   currentSecondIndex += seconds / cfg->secondsRepresentation;
 
+
+  for (int i = cfg->clockStart; i < cfg->total; i++) {
+    cout << setw(4) << i;
+  }
+  cout << endl;
+
   for (int i = cfg->clockStart; i < cfg->clockEnd; i++) {
-    cout << i << "\t";
     if (i < currentTimeIndex) {
-      cout << cfg->colorPast;
+      cout << "   " << cfg->colorPast;
     } else {
-      cout << colors[i];
+      cout << "   " << colors[i];
     }
-    cout << endl;
   }
 
   for (int i = cfg->minutesStart; i < cfg->minutesEnd; i++) {
-    cout << i << "\t";
     if (i < currentMinuteIndex) {
-      cout << cfg->colorCounterMinutes;
+      cout << "   " << cfg->colorCounterMinutes;
     } else {
-      cout << colors[i];
+      cout << "   " << colors[i];
     }
-    cout << endl;
   }
 
   for (int i = cfg->secondsStart; i < cfg->secondsEnd; i++) {
-    cout << i << "\t";
     if (i < currentSecondIndex) {
-      cout << cfg->colorCounterSeconds;
+      cout << "   " << cfg->colorCounterSeconds;
     } else {
-      cout << colors[i];
+      cout << "   " << colors[i];
     }
-    cout << endl;
   }
+
+  cout << endl;
 }
