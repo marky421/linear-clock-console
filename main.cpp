@@ -112,19 +112,30 @@ int main() {
   }
 
   time_t now = getNow();
+  time_t last = getNow();
+
+  cout << "now: " << ctime(&now) << endl;
+
   bool alreadyOff = false;
 
-  if (inClockRange(&cfg, getHours(&now))) {
-    renderTime(&cfg, &now, colors);
-    alreadyOff = false;
-  } else {
-    cout << "not in range!" << endl;
-    if (!alreadyOff) {
-      for (int i = cfg.clockStart; i < cfg.total; i++) {
-        // set each LED to off
-      }
-      alreadyOff = true;
+  while (true) {
+    now = getNow();
+    if (now == last) {
+      continue;
     }
+    if (inClockRange(&cfg, getHours(&now))) {
+      renderTime(&cfg, &now, colors);
+      alreadyOff = false;
+    } else {
+      cout << "not in range!" << endl;
+      if (!alreadyOff) {
+        for (int i = cfg.clockStart; i < cfg.total; i++) {
+          // set each LED to off
+        }
+        alreadyOff = true;
+      }
+    }
+    last = now;
   }
   return 0;
 }
@@ -150,7 +161,7 @@ bool inClockRange(config *cfg, int hours) {
 }
 
 void renderTime(config *cfg, time_t *time, string colors[]) {
-  cout << "renderTime: " << ctime(time) << endl;
+  //cout << "renderTime: " << ctime(time) << endl;
 
   int hours   = getHours(time);
   int minutes = getMinutes(time);
@@ -168,33 +179,36 @@ void renderTime(config *cfg, time_t *time, string colors[]) {
 
 
   for (int i = cfg->clockStart; i < cfg->total; i++) {
-    cout << setw(4) << i;
+    //cout << setw(4) << i;
   }
-  cout << endl;
+  //cout << endl;
+
+  string spacer = "";
 
   for (int i = cfg->clockStart; i < cfg->clockEnd; i++) {
     if (i < currentTimeIndex) {
-      cout << "   " << cfg->colorPast;
+      cout << spacer << cfg->colorPast;
     } else {
-      cout << "   " << colors[i];
+      cout << spacer << colors[i];
     }
   }
 
   for (int i = cfg->minutesStart; i < cfg->minutesEnd; i++) {
     if (i < currentMinuteIndex) {
-      cout << "   " << cfg->colorCounterMinutes;
+      cout << spacer << cfg->colorCounterMinutes;
     } else {
-      cout << "   " << colors[i];
+      cout << spacer << colors[i];
     }
   }
 
   for (int i = cfg->secondsStart; i < cfg->secondsEnd; i++) {
     if (i < currentSecondIndex) {
-      cout << "   " << cfg->colorCounterSeconds;
+      cout << spacer << cfg->colorCounterSeconds;
     } else {
-      cout << "   " << colors[i];
+      cout << spacer << colors[i];
     }
   }
 
-  cout << endl;
+  //cout << endl;
+  cout << "\r";
 }
